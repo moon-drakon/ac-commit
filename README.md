@@ -93,9 +93,11 @@ The live check reads the real judges and GitHub. It never pushes.
 
 ```bash
 npm run pack
+npm run screens
 ```
 
-`pack` writes the release zip to `dist/`.
+`pack` writes the release zip to `dist/`. `screens` renders the store images into `store/` with
+headless Chrome. The store listing text is in [store/listing.md](store/listing.md).
 
 ### Add a judge
 
@@ -114,6 +116,10 @@ Then add the judge to `PLATFORMS` in `src/background.js` and to `manifest.json`.
 - Codeforces "view source" and LeetCode GraphQL are not public APIs. If a judge changes them,
   that judge stops syncing and the popup shows the error.
 - The extension is not in the Chrome Web Store yet. Install it with **Load unpacked**.
+
+## Privacy policy
+
+See [PRIVACY.md](PRIVACY.md).
 
 ## License
 

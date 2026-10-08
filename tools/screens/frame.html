@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>AC Commit popup</title>
+  <style>
+    html, body { margin: 0; width: 1280px; height: 800px; }
+    body {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      align-items: center;
+      gap: 56px;
+      padding: 0 96px;
+      box-sizing: border-box;
+      background: linear-gradient(135deg, #0d1117 0%, #13261a 100%);
+      color: #e6edf3;
+      font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    h1 { font-size: 44px; line-height: 1.15; margin: 0 0 20px; letter-spacing: -0.02em; }
+    p { font-size: 20px; color: #9198a1; margin: 0 0 12px; max-width: 560px; }
+    .toast {
+      margin-top: 36px; display: flex; gap: 14px; align-items: center;
+      background: #151b23; border: 1px solid #3d444d; border-radius: 10px; padding: 14px 18px; width: fit-content;
+    }
+    .toast img { width: 36px; height: 36px; }
+    .toast b { display: block; color: #e6edf3; }
+    .toast span { color: #9198a1; font-size: 15px; }
+    iframe {
+      width: 344px; height: 470px; border: 1px solid #3d444d; border-radius: 10px;
+      background: #fff; box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <h1>Every AC becomes<br>a dated commit</h1>
+    <p>Solve on Codeforces, LeetCode, or CodeChef. Your code lands in your GitHub repo within seconds, dated at the time of the AC.</p>
+    <div class="toast">
+      <img src="/icons/128.png" alt="">
+      <div><b>Pushed to GitHub</b><span>CF 2275H: A Problem to Warm Up the Eyebrows</span></div>
+    </div>
+  </div>
+  <iframe src="popup.html" title="AC Commit popup"></iframe>
+</body>
+</html>
