@@ -59,7 +59,7 @@ globalThis.chrome = {
   },
 };
 
-const gh = fakeGitHub({ files: { 'README.md': '# Codeforces solutions\n', '1/A.c': 'old\n' } });
+const gh = fakeGitHub({ files: { 'README.md': '# Codeforces solutions\n', 'codeforces/1/A.c': 'old\n' } });
 globalThis.fetch = gh.fetchImpl;
 
 await local.set({
@@ -96,9 +96,10 @@ test('a Codeforces tab tick pushes the new AC as one dated commit', async () => 
   assert.equal(c.author.name, 'Some One');
   assert.equal(c.author.email, '42+someone@users.noreply.github.com');
   assert.equal(c.author.date, new Date(1791427000 * 1000).toISOString());
-  assert.equal(gh.state.files['2/B.cpp'], '\n#include <cstdio>\nint main(){}\n');
-  assert.match(gh.state.files['README.md'], /^# Codeforces solutions\n\n## Problems\n\n<!-- ac-commit:start -->\nSolved: \*\*1\*\*/);
-  assert.match(gh.state.files['README.md'], /\| \[2B\]\(https:\/\/codeforces\.com\/contest\/2\/problem\/B\) \| New One \| 1200 \| \[C\+\+\]\(2\/B\.cpp\) \|/);
+  assert.equal(gh.state.files['codeforces/2/B.cpp'], '\n#include <cstdio>\nint main(){}\n');
+  assert.match(gh.state.files['README.md'], /^# Codeforces solutions\n\n## Codeforces\n\nProfile: \[someone\]/);
+  assert.match(gh.state.files['README.md'], /<!-- ac-commit:codeforces:start -->\nSolved: \*\*1\*\*/);
+  assert.match(gh.state.files['README.md'], /\| \[2B\]\(https:\/\/codeforces\.com\/contest\/2\/problem\/B\) \| New One \| 1200 \| \[C\+\+\]\(codeforces\/2\/B\.cpp\) \|/);
   assert.equal(notifications.length, 1);
   assert.deepEqual((await local.get('synced:codeforces'))['synced:codeforces'].subs, { '1/A': '5', '2/B': '11' });
 });
@@ -129,7 +130,7 @@ test('a newer AC on the judge updates the stored file', async () => {
   tick('https://codeforces.com/contest/2/my');
   await until(async () => gh.state.commits.length === 2);
   assert.equal(gh.state.commits[1].message, 'CF 2B: New One (new AC)');
-  assert.equal(gh.state.files['2/B.cpp'], 'int main(){return 0;}\n');
+  assert.equal(gh.state.files['codeforces/2/B.cpp'], 'int main(){return 0;}\n');
 });
 
 test('Save and check fills in the account and sets up repos', async () => {

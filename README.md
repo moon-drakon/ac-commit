@@ -4,7 +4,8 @@ AC Commit is a Chrome and Edge extension. It turns every accepted solution on Co
 LeetCode, and CodeChef into a commit in your GitHub repo. Each commit is dated at the time
 of the AC, so your contribution graph shows when you solved each problem.
 
-- One repo per judge, one file per problem. Each file holds your latest AC.
+- One repo, one folder per judge, one file per problem. Each file holds your latest AC.
+  You can also give each judge its own repo.
 - A problem table in each repo's README, updated in the same commit.
 - No server in the middle. The extension talks only to the judges and to `api.github.com`.
 
@@ -16,8 +17,8 @@ of the AC, so your contribution graph shows when you solved each problem.
 2. Open `chrome://extensions` (or `edge://extensions`) and turn on **Developer mode**.
 3. Click **Load unpacked** and select the unzipped folder.
 4. The settings page opens. Follow the steps there:
-   1. Enter your handles. Create the solution repos with the links on the page.
-   2. Click **Create a fine-grained token**. Pick your solution repos.
+   1. Enter your handles. Create the solutions repo with the link on the page.
+   2. Click **Create a fine-grained token**. Pick your solutions repo.
       Check that **Contents** is **Read and write**. Generate the token and paste it.
    3. Click **Save and check**. AC Commit fills in your account and adds a README to empty repos.
 
@@ -49,18 +50,24 @@ The first sync also adds every past AC that is not in the repo yet.
 
 ## Repo layout
 
+By default all judges share one repo named `cp-solutions`:
+
 | Judge | File | Commit message |
 |---|---|---|
-| Codeforces | `2275/H.cpp`, gym: `gym/104114/A.cpp` | `CF 2275H: <name>` |
-| LeetCode | `0001-two-sum.cpp` | `LC 0001: Two Sum` |
-| CodeChef | `FLOW001.cpp` | `CC FLOW001: <name>` |
+| Codeforces | `codeforces/2275/H.cpp`, gym: `codeforces/gym/104114/A.cpp` | `CF 2275H: <name>` |
+| LeetCode | `leetcode/0001-two-sum.cpp` | `LC 0001: Two Sum` |
+| CodeChef | `codechef/FLOW001.cpp` | `CC FLOW001: <name>` |
+
+To keep a judge in its own repo, give it a different repo name in settings and clear its folder.
+Judges that share a repo must each have their own folder.
 
 A newer AC for a problem you already have is committed as `<message> (new AC)`.
 Code is stored as submitted, with LF line endings and one final newline.
-The README table sits between `<!-- ac-commit:start -->` and `<!-- ac-commit:end -->`.
-Text outside the markers is not changed.
+The README has one table per judge, between `<!-- ac-commit:<judge>:start -->` and
+`<!-- ac-commit:<judge>:end -->`. A shared repo also gets a total line. Text outside the
+markers is not changed.
 
-Example: [moon-drakon/codeforces-solutions](https://github.com/moon-drakon/codeforces-solutions).
+Example: [moon-drakon/cp-solutions](https://github.com/moon-drakon/cp-solutions).
 
 ## Privacy
 
@@ -74,8 +81,8 @@ Example: [moon-drakon/codeforces-solutions](https://github.com/moon-drakon/codef
 npm test
 ```
 
-21 tests cover language mapping, the README table, git blob ids, the GitHub commit retry,
-empty-repo setup, the sync pass, and the service worker with a fake `chrome` API.
+25 tests cover language mapping, the README tables, folders, git blob ids, the GitHub commit
+retry, empty-repo setup, the sync pass, and the service worker with a fake `chrome` API.
 There are no dependencies to install.
 
 ```bash

@@ -1,4 +1,4 @@
-import { loadSettings } from './settings.js';
+import { loadSettings, layoutProblems } from './settings.js';
 import { syncPlatform } from './sync.js';
 import { fetchNet, checkResponse } from './net.js';
 import { Repo, whoAmI } from './github.js';
@@ -53,6 +53,14 @@ async function updateBadge(state) {
   if (failing) await chrome.action.setBadgeBackgroundColor({ color: '#cf222e' });
 }
 
+// README for a new repo: one section per enabled judge that uses it.
+function readmeFor(settings, repoName) {
+  const sections = Object.entries(settings.platforms)
+    .filter(([, p]) => p.enabled && p.repo === repoName)
+    .map(([id, p]) => ({ platform: PLATFORMS[id], handle: p.handle, folder: p.folder }));
+  return templateReadme(sections);
+}
+
 async function notify(title, message) {
   const settings = await loadSettings();
   if (!settings.notify) return;
@@ -69,6 +77,11 @@ export async function run(id, { tabId, forceFull = false } = {}) {
     await updateState(id, { error: 'Add a GitHub token in AC Commit settings and click Save.' });
     return null;
   }
+  const layoutError = layoutProblems(settings)[id];
+  if (layoutError) {
+    await updateState(id, { error: layoutError });
+    return null;
+  }
 
   let net;
   if (platform.needsTab) {
@@ -83,7 +96,7 @@ export async function run(id, { tabId, forceFull = false } = {}) {
   const now = Date.now();
   const state = (await getLocal('state', {}))[id] || {};
   const storeKey = `synced:${id}`;
-  const target = `${settings.owner}/${cfg.repo}@${cfg.handle}`;
+  const target = `${settings.owner}/${cfg.repo}/${cfg.folder || ''}@${cfg.handle}`;
   let stored = await getLocal(storeKey, null);
   if (!stored || stored.target !== target) stored = { target, subs: {}, failed: {} };
   const synced = new Map(Object.entries(stored.subs));
@@ -92,7 +105,7 @@ export async function run(id, { tabId, forceFull = false } = {}) {
 
   try {
     const res = await syncPlatform(platform, {
-      net, cfg, settings, synced, full, timeZone,
+      net, cfg, settings, synced, full, timeZone, initialReadme: readmeFor(settings, cfg.repo),
       shouldTry: (item) => !(stored.failed[item.key] > now - RETRY_AFTER),
       onItemError: (item) => { stored.failed[item.key] = now; },
       onPushed: async (sol, _sha, item) => {
@@ -165,6 +178,8 @@ async function testRepos() {
   } catch (err) {
     return { github: { ok: false, message: err.message } };
   }
+  const layout = layoutProblems(settings);
+  const repos = {};
   for (const [id, cfg] of Object.entries(settings.platforms)) {
     if (!cfg.enabled) continue;
     const platform = PLATFORMS[id];
@@ -172,10 +187,17 @@ async function testRepos() {
       out[id] = { ok: false, message: 'Enter your handle.' };
       continue;
     }
+    if (layout[id]) {
+      out[id] = { ok: false, message: layout[id] };
+      continue;
+    }
     try {
-      const repo = new Repo({ token: settings.token, owner: settings.owner, repo: cfg.repo, branch: settings.branch });
-      await repo.load({ initialReadme: templateReadme(platform, cfg.handle) });
-      out[id] = { ok: true, message: `${settings.owner}/${cfg.repo}: ready, ${repo.paths.size} files.` };
+      // Judges that share a repo load it once, so an empty repo gets one README with every section.
+      repos[cfg.repo] ||= new Repo({ token: settings.token, owner: settings.owner, repo: cfg.repo, branch: settings.branch })
+        .load({ initialReadme: readmeFor(settings, cfg.repo) });
+      await repos[cfg.repo];
+      const where = cfg.folder ? `${settings.owner}/${cfg.repo}/${cfg.folder}` : `${settings.owner}/${cfg.repo}`;
+      out[id] = { ok: true, message: `${where}: ready.` };
     } catch (err) {
       out[id] = { ok: false, message: err.message };
     }

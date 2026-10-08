@@ -15,20 +15,21 @@ tokenUrl.search = new URLSearchParams({
 $('new-token').href = tokenUrl.href;
 
 function createLinks(s) {
-  const links = Object.entries(s.platforms)
-    .filter(([, p]) => p.enabled && p.repo)
-    .map(([id, p]) => {
+  const repos = {};
+  for (const [id, p] of Object.entries(s.platforms)) if (p.enabled && p.repo) (repos[p.repo] ||= []).push(NAMES[id]);
+  const links = Object.entries(repos)
+    .map(([repo, names]) => {
       const a = document.createElement('a');
       const url = new URL('https://github.com/new');
       url.search = new URLSearchParams({
-        name: p.repo,
-        description: `My accepted ${NAMES[id]} solutions, one commit per AC`,
+        name: repo,
+        description: `My accepted ${names.length > 1 ? 'competitive programming' : names[0]} solutions, one commit per AC`,
         visibility: 'public',
       }).toString();
       a.href = url.href;
       a.target = '_blank';
       a.rel = 'noopener';
-      a.textContent = p.repo;
+      a.textContent = repo;
       return a;
     });
   const out = [];
@@ -48,10 +49,12 @@ async function render() {
       row.innerHTML = `
         <label class="row" style="margin:0;font-weight:600"><input type="checkbox" data-id="${id}" data-k="enabled"> ${NAMES[id]}</label>
         <input type="text" data-id="${id}" data-k="handle" aria-label="${NAMES[id]} handle" placeholder="${PLACEHOLDER[id]}">
-        <input type="text" data-id="${id}" data-k="repo" aria-label="${NAMES[id]} repo">`;
+        <input type="text" data-id="${id}" data-k="repo" aria-label="${NAMES[id]} repo">
+        <input type="text" data-id="${id}" data-k="folder" aria-label="${NAMES[id]} folder" placeholder="none">`;
       row.querySelector('[data-k="enabled"]').checked = p.enabled;
       row.querySelector('[data-k="handle"]').value = p.handle;
       row.querySelector('[data-k="repo"]').value = p.repo;
+      row.querySelector('[data-k="folder"]').value = p.folder;
       return row;
     }),
   );

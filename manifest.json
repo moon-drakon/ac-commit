@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AC Commit",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Every accepted Codeforces, LeetCode, and CodeChef solution becomes a dated commit in your GitHub repo.",
   "minimum_chrome_version": "116",
   "permissions": ["storage", "alarms", "notifications"],

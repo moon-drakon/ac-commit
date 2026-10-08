@@ -56,7 +56,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 button:disabled { opacity: 0.6; cursor: default; }
 .card { border: 1px solid var(--line); border-radius: 8px; background: var(--card); padding: 12px; margin: 8px 0; }
 .row { display: flex; gap: 8px; align-items: center; }
-.grid { display: grid; grid-template-columns: 110px 1fr 1fr; gap: 8px; align-items: center; }
+.grid { display: grid; grid-template-columns: 110px 1fr 1fr 1fr; gap: 8px; align-items: center; }
 .grid input { margin: 0; }
 .ok { color: var(--accent); }
 .err { color: var(--danger); }

@@ -18,14 +18,15 @@
 
   <h2>1. Judges and repos</h2>
   <p class="muted">Enter your handle on each judge. Leave a judge unchecked to skip it. LeetCode uses the account you are logged in to, so its handle is optional.</p>
-  <div class="grid muted"><span></span><span>Handle</span><span>Repo name</span></div>
+  <p class="muted">By default all judges share one repo, each in its own folder. To keep a judge separate, give it its own repo and clear its folder.</p>
+  <div class="grid muted"><span></span><span>Handle</span><span>Repo name</span><span>Folder</span></div>
   <div id="platforms"></div>
-  <p class="muted">Each repo must exist before you create the token. Create any that are missing: <span id="create-links"></span>. An empty repo is fine. AC Commit adds the README.</p>
+  <p class="muted">The repo must exist before you create the token. Create it if it is missing: <span id="create-links"></span>. An empty repo is fine. AC Commit adds the README.</p>
 
   <h2>2. GitHub token</h2>
   <ol class="muted">
     <li><a id="new-token" href="#" target="_blank" rel="noopener">Create a fine-grained token</a>. The name and permission are filled in.</li>
-    <li>Under <b>Repository access</b>, choose <b>Only select repositories</b> and pick the repos above.</li>
+    <li>Under <b>Repository access</b>, choose <b>Only select repositories</b> and pick the repo above.</li>
     <li>Check that <b>Contents</b> is <b>Read and write</b>, then click <b>Generate token</b>.</li>
   </ol>
   <label for="token">Token</label>

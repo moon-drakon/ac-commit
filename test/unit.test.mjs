@@ -2,9 +2,10 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { extFor, labelFor, normalizeCode, decodeHtml } from '../src/lang.js';
-import { upsertRow, upsertRows, templateReadme, START, END, localDate } from '../src/readme.js';
+import { upsertRow, upsertRows, templateReadme, markers, localDate } from '../src/readme.js';
 import { Repo, gitBlobSha, whoAmI } from '../src/github.js';
-import { syncPlatform } from '../src/sync.js';
+import { syncPlatform, repoPaths } from '../src/sync.js';
+import { layoutProblems, mergeSettings } from '../src/settings.js';
 import codeforces from '../src/platforms/codeforces.js';
 import leetcode from '../src/platforms/leetcode.js';
 import codechef, { parseRecent } from '../src/platforms/codechef.js';
@@ -45,37 +46,82 @@ const row = (id, date, extra = {}) => ({
   id, date, url: `https://x/${id}`, name: `Name ${id}`, difficulty: 800, lang: 'C++', path: `${id}.cpp`, ...extra,
 });
 
-test('README block is appended once and keeps outside text', () => {
+const CF = { platform: codeforces, handle: 'someone', folder: 'codeforces' };
+const [CF_START, CF_END] = markers('codeforces');
+
+test('README section is appended once and keeps outside text', () => {
   const base = '# Title\n\nIntro line.\n';
-  const a = upsertRow(base, row('1A', '2026-10-01'));
-  assert.ok(a.startsWith(`# Title\n\nIntro line.\n\n## Problems\n\n${START}`));
-  assert.ok(a.trimEnd().endsWith(END));
+  const a = upsertRow(base, row('1A', '2026-10-01'), CF);
+  assert.ok(a.startsWith('# Title\n\nIntro line.\n\n## Codeforces\n\nProfile: [someone](https://codeforces.com/profile/someone). Files are in `codeforces/`'));
+  assert.ok(a.trimEnd().endsWith(CF_END));
   assert.match(a, /Solved: \*\*1\*\*/);
   assert.match(a, /\| Problem \| Name \| Rating \| Code \| Last AC \|/);
-  const b = upsertRow(`${a}\nFooter.\n`, row('2B', '2026-10-03'));
-  assert.equal(b.split(START).length, 2);
+  const b = upsertRow(`${a}\nFooter.\n`, row('2B', '2026-10-03'), CF);
+  assert.equal(b.split(CF_START).length, 2);
   assert.ok(b.endsWith('\nFooter.\n'));
   assert.deepEqual(rowIds(b), ['2B', '1A']);
 });
 
 test('README rows sort by date, newest first, and a new AC moves its row', () => {
-  let r = upsertRows('', [row('A', '2026-01-01'), row('B', '2026-01-02'), row('C', '2026-01-02')]);
+  let r = upsertRows('', [row('A', '2026-01-01'), row('B', '2026-01-02'), row('C', '2026-01-02')], CF);
   assert.deepEqual(rowIds(r), ['C', 'B', 'A']);
-  r = upsertRow(r, row('A', '2026-01-05', { name: 'New | name' }));
+  r = upsertRow(r, row('A', '2026-01-05', { name: 'New | name' }), CF);
   assert.deepEqual(rowIds(r), ['A', 'C', 'B']);
   assert.match(r, /New \\\| name/);
   assert.match(r, /Solved: \*\*3\*\*/);
 });
 
-test('template README describes the repo and starts an empty table', () => {
-  const r = templateReadme(codeforces, 'someone');
+test('template README for a repo with one judge', () => {
+  const single = { platform: codeforces, handle: 'someone' };
+  const r = templateReadme([single]);
   assert.match(r, /^# Codeforces solutions\n/);
   assert.match(r, /\[someone\]\(https:\/\/codeforces\.com\/profile\/someone\)/);
   assert.match(r, /latest accepted submission/);
   assert.match(r, /Solved: \*\*0\*\*/);
+  assert.ok(!r.includes('Total solved'));
   assert.ok(!r.includes(String.fromCharCode(0x2014)), 'no em dash');
-  assert.match(templateReadme(leetcode, ''), /My accepted solutions on LeetCode\.\n/);
-  assert.deepEqual(rowIds(upsertRow(r, row('1A', '2026-10-01'))), ['1A']);
+  assert.match(templateReadme([{ platform: leetcode, handle: '' }]), /My accepted solutions on LeetCode\.\n/);
+  assert.deepEqual(rowIds(upsertRow(r, row('1A', '2026-10-01'), single)), ['1A']);
+});
+
+test('template README for a shared repo keeps a total across judges', () => {
+  const LC = { platform: leetcode, handle: '', folder: 'leetcode' };
+  const CC = { platform: codechef, handle: 'chef', folder: 'codechef' };
+  let r = templateReadme([CF, LC, CC]);
+  assert.match(r, /^# Competitive programming solutions\n/);
+  assert.match(r, /on Codeforces, LeetCode, and CodeChef\./);
+  assert.match(r, /Total solved: \*\*0\*\*/);
+  assert.deepEqual([...r.matchAll(/^## (.+)$/gm)].map((m) => m[1]), ['Codeforces', 'LeetCode', 'CodeChef']);
+  assert.match(r, /Files are in `leetcode\/`, named `number-slug\.ext`/);
+  assert.ok(!r.includes(String.fromCharCode(0x2014)), 'no em dash');
+  r = upsertRow(r, row('1A', '2026-10-01'), CF);
+  r = upsertRow(r, row('2B', '2026-10-02'), CF);
+  r = upsertRow(r, row('0001', '2026-10-03', { name: 'Two Sum' }), LC);
+  assert.match(r, /Total solved: \*\*3\*\*/);
+  assert.deepEqual(rowIds(r.slice(r.indexOf(CF_START), r.indexOf(CF_END))), ['2B', '1A']);
+  assert.match(r.slice(r.indexOf(markers('leetcode')[0])), /Solved: \*\*1\*\*[\s\S]*Two Sum/);
+  assert.match(r.slice(r.indexOf(markers('codechef')[0])), /Solved: \*\*0\*\*/);
+});
+
+test('folders map repo paths to problem keys', () => {
+  const cf = repoPaths(codeforces, 'codeforces');
+  assert.equal(cf.toRepo('2275/H.cpp'), 'codeforces/2275/H.cpp');
+  assert.equal(cf.keyOf('codeforces/2275/H.cpp'), '2275/H');
+  assert.equal(cf.keyOf('2275/H.cpp'), null);
+  assert.equal(cf.keyOf('README.md'), null);
+  const cc = repoPaths(codechef, 'codechef/');
+  assert.equal(cc.keyOf('codechef/FLOW001.cpp'), 'FLOW001');
+  assert.equal(cc.keyOf('codechef/README.md'), null);
+  assert.equal(cc.keyOf('codeforces/2275/H.cpp'), null);
+  assert.equal(repoPaths(codechef, '').keyOf('README.md'), null);
+});
+
+test('judges that share a repo need their own folders', () => {
+  assert.deepEqual(layoutProblems(mergeSettings()), {});
+  const s = mergeSettings({ platforms: { leetcode: { folder: '' }, codechef: { folder: 'codeforces' } } });
+  assert.deepEqual(Object.keys(layoutProblems(s)).sort(), ['codechef', 'leetcode']);
+  const separate = mergeSettings({ platforms: { codeforces: { repo: 'a', folder: '' }, leetcode: { repo: 'b', folder: '' }, codechef: { repo: 'c', folder: '' } } });
+  assert.deepEqual(layoutProblems(separate), {});
 });
 
 test('local date uses the given time zone', () => {
@@ -207,6 +253,17 @@ test('a newer AC replaces the file, and a new language removes the old file', as
   assert.equal(gh.state.files['1/A.c'], undefined);
   assert.equal(synced.get('1/A'), '11');
   assert.deepEqual(rowIds(gh.state.files['README.md']), ['1A']);
+});
+
+test('folder mode writes under the folder and ignores other judges', async () => {
+  const gh = fakeGitHub({ files: { 'README.md': '# CP\n', 'codeforces/1/A.cpp': 'same\n', 'codechef/1.cpp': 'cc\n', '1/B.cpp': 'stray\n' } });
+  const judge = fakeJudge([{ key: '1/A', subId: 1, time: 100 }, { key: '1/B', subId: 2, time: 1791427671 }], { 1: 'same\n', 2: 'b\n' });
+  const res = await syncPlatform(judge, { net: null, cfg: { repo: 'r', handle: 'h', folder: 'codeforces' }, settings: SETTINGS, synced: new Map(), fetchImpl: gh.fetchImpl, timeZone: 'UTC' });
+  assert.deepEqual(res.pushed.map((p) => p.message), ['CF 1B: PB']);
+  assert.equal(gh.state.files['codeforces/1/B.cpp'], 'b\n');
+  assert.equal(gh.state.files['1/B.cpp'], 'stray\n', 'files outside the folder are left alone');
+  assert.equal(gh.state.files['codechef/1.cpp'], 'cc\n');
+  assert.match(gh.state.files['README.md'], /\[cpp\]\(codeforces\/1\/B\.cpp\)/);
 });
 
 test('a judge error skips one problem and keeps going', async () => {

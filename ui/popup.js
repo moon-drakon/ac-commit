@@ -27,7 +27,7 @@ async function render() {
     const s = state[id] || {};
     const c = document.createElement('div');
     c.className = 'card';
-    const repoUrl = `https://github.com/${settings.owner}/${cfg.repo}`;
+    const repoUrl = `https://github.com/${settings.owner}/${cfg.repo}${cfg.folder ? `/tree/${settings.branch}/${cfg.folder}` : ''}`;
     c.innerHTML = `
       <p><span class="name"></span> <span class="muted solved"></span></p>
       <p class="muted"><a class="repo" target="_blank" rel="noopener"></a> · checked <span class="checked"></span></p>
@@ -37,7 +37,7 @@ async function render() {
     c.querySelector('.solved').textContent = s.solved != null ? `${s.solved} solved` : '';
     const a = c.querySelector('.repo');
     a.href = repoUrl;
-    a.textContent = cfg.repo;
+    a.textContent = cfg.folder ? `${cfg.repo}/${cfg.folder}` : cfg.repo;
     c.querySelector('.checked').textContent = ago(s.lastCheck);
     c.querySelector('.last').textContent = s.lastPushed ? `Last push: ${s.lastPushed.message} (${ago(s.lastPushed.at)})` : '';
     c.querySelector('.error').textContent = s.error || '';
