@@ -1,0 +1,13 @@
+{
+  "name": "ac-commit",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Browser extension that turns every accepted Codeforces, LeetCode, and CodeChef solution into a dated GitHub commit.",
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "live": "node tools/live-check.mjs",
+    "pack": "node tools/pack.mjs"
+  },
+  "license": "MIT"
+}

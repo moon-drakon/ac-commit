@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>AC Commit</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { width: 320px; padding: 12px; }
+    .card p { margin: 0; }
+    .name { font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="row" style="justify-content:space-between">
+    <h1>AC Commit</h1>
+    <a href="#" id="settings" class="muted">Settings</a>
+  </div>
+  <div id="list"></div>
+  <div class="row" style="margin-top:8px">
+    <button id="sync" class="primary">Sync now</button>
+    <span id="msg" class="muted"></span>
+  </div>
+  <p class="muted" style="margin-top:8px">Codeforces and LeetCode sync while a tab of that site is open. CodeChef also syncs every 30 minutes.</p>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

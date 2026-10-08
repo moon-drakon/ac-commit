@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AC Commit settings</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    main { max-width: 680px; margin: 0 auto; padding: 24px 16px 48px; }
+    ol { padding-left: 20px; margin: 0; }
+    ol li { margin: 4px 0; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>AC Commit settings</h1>
+  <p class="muted">Every accepted solution becomes a commit in your GitHub repo, dated at the time of the AC. Each problem keeps your latest AC.</p>
+
+  <h2>1. Judges and repos</h2>
+  <p class="muted">Enter your handle on each judge. Leave a judge unchecked to skip it. LeetCode uses the account you are logged in to, so its handle is optional.</p>
+  <div class="grid muted"><span></span><span>Handle</span><span>Repo name</span></div>
+  <div id="platforms"></div>
+  <p class="muted">Each repo must exist before you create the token. Create any that are missing: <span id="create-links"></span>. An empty repo is fine. AC Commit adds the README.</p>
+
+  <h2>2. GitHub token</h2>
+  <ol class="muted">
+    <li><a id="new-token" href="#" target="_blank" rel="noopener">Create a fine-grained token</a>. The name and permission are filled in.</li>
+    <li>Under <b>Repository access</b>, choose <b>Only select repositories</b> and pick the repos above.</li>
+    <li>Check that <b>Contents</b> is <b>Read and write</b>, then click <b>Generate token</b>.</li>
+  </ol>
+  <label for="token">Token</label>
+  <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_...">
+  <p class="muted">The token stays in this browser's extension storage. AC Commit sends it only to api.github.com.</p>
+
+  <details>
+    <summary class="muted">Advanced</summary>
+    <div class="row">
+      <div style="flex:1"><label for="owner">Repo owner</label><input id="owner" type="text" placeholder="Filled in from the token"></div>
+      <div style="width:140px"><label for="branch">Branch</label><input id="branch" type="text"></div>
+    </div>
+    <div class="row">
+      <div style="flex:1"><label for="authorName">Commit author</label><input id="authorName" type="text" placeholder="Filled in from the token"></div>
+      <div style="flex:1"><label for="authorEmail">Author email</label><input id="authorEmail" type="email" placeholder="Your GitHub noreply email"></div>
+    </div>
+    <p class="muted">The default author email is your GitHub noreply address, so the commits count on your contribution graph.</p>
+  </details>
+
+  <label class="row" style="font-weight:400"><input id="notify" type="checkbox"> Show a notification after each push</label>
+
+  <div class="row" style="margin-top:20px">
+    <button id="save" class="primary">Save and check</button>
+    <span id="msg" class="muted"></span>
+  </div>
+  <div id="results"></div>
+</main>
+<script type="module" src="options.js"></script>
+</body>
+</html>
